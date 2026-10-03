@@ -22,7 +22,24 @@ variable "vpc_name" {
 variable "eks_cluster_name" {
   description = "The name of the EKS cluster"
   type = string
-  default = "eks-cluster"
+}
+
+# Shared with core-cluster tfvars. This module does not create the node group.
+variable "eks_nodes" {
+  description = "Managed node group sizing from the shared env tfvars"
+  type = list(object({
+    instance_type = string
+    desired_size  = number
+    max_size      = number
+    min_size      = number
+  }))
+  default = []
+}
+
+variable "eks_cluster_endpoint_public_access" {
+  description = "Whether the EKS API endpoint is public. Set on the core cluster."
+  type        = bool
+  default     = true
 }
 
 variable "eks_cluster_version" {

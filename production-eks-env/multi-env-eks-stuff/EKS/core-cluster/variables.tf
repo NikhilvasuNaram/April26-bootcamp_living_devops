@@ -49,13 +49,13 @@ variable "aws_region" {
 
 variable "eks_nodes" {
   description = "The nodes of the EKS cluster"
-  type        = list(object({
+  type = list(object({
     instance_type = string
     desired_size  = number
     max_size      = number
     min_size      = number
   }))
-  default     = [
+  default = [
     {
       instance_type = "t3.medium"
       desired_size  = 3

@@ -26,7 +26,7 @@ resource "aws_iam_role" "ebs_csi_driver" {
   })
 
   tags = {
-    ManagedBy   = "Terraform"
+    ManagedBy = "Terraform"
   }
 
 }

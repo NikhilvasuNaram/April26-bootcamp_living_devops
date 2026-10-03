@@ -212,20 +212,17 @@ __marimo__/
 
 
 
-# Local Terraform caches, state, and plans
-.terraform/
+.env
+
+.terraform/*
 .terraform.lock.hcl
+.terraform
 *.tfstate
-*.tfstate.*
-*.tfplan
-tfplan
-tfplan.*
-crash.log
-crash.*.log
-.terraform.tfstate.lock.info
+*.tfstate.backup
+*.tfstate.backup.lock.info
+*.tfstate.backup.lock.info.backup.DS_Store
 
-# Toffee local data: providers, downloaded modules, and state
+
 .toffee/
-
-# Downloaded local CLIs
-actionlint
+.toffee-cache/
+.ls

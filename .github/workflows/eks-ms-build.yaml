@@ -1,0 +1,82 @@
+name: EKS microservices build
+
+on:
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - 'production-eks-env/multi-env-eks-stuff/eks-microservices/app/**'
+  workflow_dispatch:
+
+env:
+  AWS_ACCOUNT_ID: 879381241087
+  AWS_REGION: ap-south-1
+  AWS_ROLE_ARN: arn:aws:iam::879381241087:role/aws-github-oidc-aug26
+  ECR_REGISTRY: 879381241087.dkr.ecr.ap-south-1.amazonaws.com
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        services:
+          - name: frontend
+            path: production-eks-env/multi-env-eks-stuff/eks-microservices/app/frontend
+            ecr_repo: dev-ecommerce-frontend
+          - name: api-gateway
+            path: production-eks-env/multi-env-eks-stuff/eks-microservices/app/api-gateway
+            ecr_repo: dev-ecommerce-api-gateway
+          - name: user-service
+            path: production-eks-env/multi-env-eks-stuff/eks-microservices/app/services/user-service
+            ecr_repo: dev-ecommerce-user-service
+          - name: product-service
+            path: production-eks-env/multi-env-eks-stuff/eks-microservices/app/services/product-service
+            ecr_repo: dev-ecommerce-product-service
+          - name: cart-service
+            path: production-eks-env/multi-env-eks-stuff/eks-microservices/app/services/cart-service
+            ecr_repo: dev-ecommerce-cart-service
+          - name: order-service
+            path: production-eks-env/multi-env-eks-stuff/eks-microservices/app/services/order-service
+            ecr_repo: dev-ecommerce-order-service
+          - name: payment-service
+            path: production-eks-env/multi-env-eks-stuff/eks-microservices/app/services/payment-service
+            ecr_repo: dev-ecommerce-payment-service
+          - name: notification-service
+            path: production-eks-env/multi-env-eks-stuff/eks-microservices/app/services/notification-service
+            ecr_repo: dev-ecommerce-notification-service
+          - name: seed
+            path: production-eks-env/multi-env-eks-stuff/eks-microservices/app/seed-job
+            ecr_repo: dev-ecommerce-seed
+  
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: aws creds with oidc
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          # aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          # aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: ecr login
+        run: |
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+      # use github action cache
+      - name: Build and Push ${{ matrix.services.name }}
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            -t ${{ env.ECR_REGISTRY }}/${{ matrix.services.ecr_repo }}:${{ github.sha }} \
+            --cache-from type=registry,ref=${{ env.ECR_REGISTRY }}/${{ matrix.services.ecr_repo }}:buildcache \
+            --cache-to type=registry,ref=${{ env.ECR_REGISTRY }}/${{ matrix.services.ecr_repo }}:buildcache,mode=max,image-manifest=true,oci-mediatypes=true \
+            --push ${{ matrix.services.path }}

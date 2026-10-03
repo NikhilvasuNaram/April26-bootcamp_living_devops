@@ -1,5 +1,5 @@
 env = "dev"
-
+eks_cluster_name = "sep26-cluster"
 
 eks_nodes = [
   {

@@ -40,7 +40,7 @@ variable "platform_env" {
 variable "enable_cluster_resources" {
   description = "Provision namespace, data stores, ingress, and DNS on the cluster in var.cluster_name"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "environments" {
@@ -96,10 +96,7 @@ variable "environments" {
   }
 }
 
-variable "app_subdomain" {
-  description = "App DNS tier shared with ArgoCD/Vault/Grafana (e.g. devopsdozo → *.devopsdozo.livingdevops.org cert)"
-  default     = "devopsdozo"
-}
+
 
 variable "aws_alb_zoneid" {
   description = "Route53 hosted zone ID for ALB alias targets (ap-south-1)"
@@ -218,6 +215,10 @@ variable "domain_name" {
   default     = "livingdevops.org"
 }
 
+variable "app_subdomain" {
+  description = "App DNS tier shared with ArgoCD/Vault/Grafana (e.g. devopsdozo → *.devopsdozo.livingdevops.org cert)"
+  default     = "devopsdozo"
+}
 variable "acm_cert_arn" {
   description = "Optional ACM certificate ARN override; defaults to ISSUED wildcard *.app_subdomain.domain from k8s-services"
   type        = string

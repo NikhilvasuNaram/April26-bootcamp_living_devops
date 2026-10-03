@@ -1,5 +1,5 @@
 data "aws_eks_cluster" "cluster" {
-  name = local.eks_cluster_name
+  name = "${var.env}-${var.eks_cluster_name}"
 }
 
 data "aws_vpc" "eks_vpc" {
@@ -7,7 +7,7 @@ data "aws_vpc" "eks_vpc" {
 }
 
 data "aws_eks_cluster_auth" "cluster" {
-  name = local.eks_cluster_name
+  name = "${var.env}-${var.eks_cluster_name}"
 }
 
 data "aws_iam_openid_connect_provider" "eks" {
@@ -26,7 +26,7 @@ data "aws_iam_openid_connect_provider" "eks" {
 data "aws_security_group" "node" {
   filter {
     name   = "group-name"
-    values = ["${local.eks_cluster_name}-node-*"]
+    values = ["${var.env}-${var.eks_cluster_name}-node-*"]
   }
   filter {
     name   = "vpc-id"

@@ -1,0 +1,77 @@
+name: EKS microservices prod argo deploy
+
+# argo-prod only. Does not build images.
+# Copies the image URIs already written on argo-dev into the prod Helm values,
+# so prod runs the same dev-ecommerce-* images.
+
+on:
+  push:
+    branches:
+      - argo-prod
+    paths:
+      - 'production-eks-env/multi-env-eks-stuff/eks-microservices/app/**'
+  workflow_dispatch:
+
+env:
+  ECR_REGISTRY: 879381241087.dkr.ecr.ap-south-1.amazonaws.com
+  DEPLOY_BRANCH: argo-prod
+  DEV_VALUES_FILE: production-eks-env/multi-env-eks-stuff/eks-microservices/environments/dev/value.yaml
+  PROD_VALUES_FILE: production-eks-env/multi-env-eks-stuff/eks-microservices/environments/prod/value.yaml
+
+jobs:
+  update-prod-values:
+    if: github.ref == 'refs/heads/argo-prod'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout argo-prod
+        uses: actions/checkout@v3
+        with:
+          ref: argo-prod
+
+      - name: Copy dev image tags into prod values
+        run: |
+          git fetch origin argo-dev
+          DEV_VALUES="$(git show "origin/argo-dev:${DEV_VALUES_FILE}")"
+
+          for repo in \
+            ecommerce-product-service \
+            ecommerce-user-service \
+            ecommerce-cart-service \
+            ecommerce-order-service \
+            ecommerce-payment-service \
+            ecommerce-notification-service \
+            ecommerce-api-gateway \
+            ecommerce-frontend \
+            ecommerce-seed
+          do
+            image="$(printf '%s\n' "${DEV_VALUES}" | grep -E "image:[[:space:]].*${repo}:" | head -1 | sed -E 's/.*image:[[:space:]]*//' | tr -d '[:space:]')"
+            if [ -z "${image}" ]; then
+              echo "no ${repo} image on argo-dev"
+              exit 1
+            fi
+            sed -i -E "s|(image:[[:space:]]*).*${repo}:[^[:space:]]*|\1${image}|" "${PROD_VALUES_FILE}"
+            if ! grep -q "${image}" "${PROD_VALUES_FILE}"; then
+              echo "failed to set ${repo}"
+              exit 1
+            fi
+            echo "${repo} -> ${image}"
+          done
+
+      - name: Commit and push prod values to argo-prod
+        run: |
+          if [ "${GITHUB_REF}" != "refs/heads/${DEPLOY_BRANCH}" ]; then
+            echo "refusing to push from ${GITHUB_REF}; prod deploy only pushes to ${DEPLOY_BRANCH}"
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "${PROD_VALUES_FILE}"
+          if git diff --cached --quiet; then
+            echo "Prod images already match dev; nothing to commit"
+            exit 0
+          fi
+          git commit -m "chore(gitops): promote dev ecommerce images to prod [skip ci]"
+          git push origin HEAD:refs/heads/argo-prod

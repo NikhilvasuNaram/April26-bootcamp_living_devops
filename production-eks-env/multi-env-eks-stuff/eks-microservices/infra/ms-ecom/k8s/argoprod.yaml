@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ecommerce-prod
+  namespace: dev-argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/akhileshmishrabiz/April26-bootcamp.git
+    targetRevision: argo-prod
+    path: production-eks-env/multi-env-eks-stuff/eks-microservices/helm-services
+    helm:
+      releaseName: ecommerce-prod
+      valueFiles:
+        - ../environments/prod/value.yaml
+  destination:
+    # Name of the prod cluster registered on the dev Argo CD
+    # (argocd cluster add --name prod-sep26-cluster).
+    name: prod-sep26-cluster
+    namespace: ecommerce
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

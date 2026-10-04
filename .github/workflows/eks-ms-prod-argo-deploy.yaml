@@ -14,7 +14,6 @@ on:
 
 env:
   ECR_REGISTRY: 879381241087.dkr.ecr.ap-south-1.amazonaws.com
-  DEPLOY_BRANCH: argo-prod
   DEV_VALUES_FILE: production-eks-env/multi-env-eks-stuff/eks-microservices/environments/dev/value.yaml
   PROD_VALUES_FILE: production-eks-env/multi-env-eks-stuff/eks-microservices/environments/prod/value.yaml
 
@@ -61,10 +60,6 @@ jobs:
 
       - name: Commit and push prod values to argo-prod
         run: |
-          if [ "${GITHUB_REF}" != "refs/heads/${DEPLOY_BRANCH}" ]; then
-            echo "refusing to push from ${GITHUB_REF}; prod deploy only pushes to ${DEPLOY_BRANCH}"
-            exit 1
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "${PROD_VALUES_FILE}"

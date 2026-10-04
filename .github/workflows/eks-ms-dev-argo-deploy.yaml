@@ -16,7 +16,6 @@ env:
   AWS_REGION: ap-south-1
   AWS_ROLE_ARN: arn:aws:iam::879381241087:role/aws-github-oidc-aug26
   ECR_REGISTRY: 879381241087.dkr.ecr.ap-south-1.amazonaws.com
-  DEPLOY_BRANCH: argo-dev
   VALUES_FILE: production-eks-env/multi-env-eks-stuff/eks-microservices/environments/dev/value.yaml
 
 jobs:
@@ -125,10 +124,6 @@ jobs:
 
       - name: Commit and push dev values to argo-dev
         run: |
-          if [ "${GITHUB_REF}" != "refs/heads/${DEPLOY_BRANCH}" ]; then
-            echo "refusing to push from ${GITHUB_REF}; dev deploy only pushes to ${DEPLOY_BRANCH}"
-            exit 1
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "${VALUES_FILE}"

@@ -16,7 +16,7 @@ spec:
   destination:
     # Name of the prod cluster registered on the dev Argo CD
     # (argocd cluster add --name prod-sep26-cluster).
-    name: prod-sep26-cluster
+    name: https://69F57B9DB497694572FFE7541CD31584.gr7.ap-south-1.eks.amazonaws.com
     namespace: ecommerce
   syncPolicy:
     automated:

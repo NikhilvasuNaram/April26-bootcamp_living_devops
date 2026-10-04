@@ -21,7 +21,6 @@ env:
 
 jobs:
   build:
-    if: github.ref == 'refs/heads/argo-dev'
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -89,7 +88,6 @@ jobs:
 
   update-dev-values:
     needs: build
-    if: github.ref == 'refs/heads/argo-dev'
     runs-on: ubuntu-latest
     permissions:
       contents: write

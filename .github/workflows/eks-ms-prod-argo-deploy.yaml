@@ -20,7 +20,6 @@ env:
 
 jobs:
   update-prod-values:
-    if: github.ref == 'refs/heads/argo-prod'
     runs-on: ubuntu-latest
     permissions:
       contents: write

@@ -1,9 +1,6 @@
-# Per-service DNS aliases to the shared ALB (same pattern as k8s-services/vault.tf).
-
-data "aws_route53_zone" "main" {
-  name         = var.domain_name
-  private_zone = false
-}
+# Per-service DNS aliases to this environment's ALB.
+# Hosts are <name>.<env>.devopsdozo.livingdevops.org (shop.dev... / shop.prod...).
+# The public zone lookup lives in acm.tf next to cert validation records.
 
 # ALB controller populates ingress.status asynchronously after create.
 resource "time_sleep" "wait_for_service_ingress" {
@@ -17,8 +14,8 @@ data "kubernetes_ingress_v1" "service" {
   for_each = local.ingress_services
 
   metadata {
-    name      = kubernetes_ingress_v1.service[each.key].metadata[0].name
-    namespace = kubernetes_ingress_v1.service[each.key].metadata[0].namespace
+    name      = "${each.key}-ingress"
+    namespace = each.value.namespace
   }
 
   depends_on = [time_sleep.wait_for_service_ingress]

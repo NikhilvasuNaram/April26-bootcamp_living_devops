@@ -107,7 +107,7 @@ resource "kubernetes_manifest" "external_secret" {
     kind       = "ExternalSecret"
     metadata = {
       name      = each.value.secret_name
-      namespace = each.value.namespace
+      namespace = local.cluster_namespace
     }
     spec = {
       refreshInterval = "1h"
@@ -133,6 +133,6 @@ resource "kubernetes_manifest" "external_secret" {
 
   depends_on = [
     kubernetes_manifest.cluster_secret_store,
-    data.kubernetes_namespace_v1.ecommerce,
+    kubernetes_namespace_v1.ecommerce,
   ]
 }

@@ -1,1 +1,2 @@
-env = "dev"
+env                      = "dev"
+enable_cluster_resources = true

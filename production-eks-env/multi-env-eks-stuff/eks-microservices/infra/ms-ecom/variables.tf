@@ -1,7 +1,4 @@
-variable "cluster_name" {
-  description = "EKS cluster name for the Kubernetes provider (one cluster per terraform apply)"
-  default     = "eks-cluster"
-}
+
 
 variable "region" {
   default = "ap-south-1"
@@ -51,17 +48,17 @@ variable "environments" {
     Cluster-scoped resources (namespace.tf, databases.tf, ingress.tf) use only environments[var.env].
   EOT
   type = map(object({
-    namespace           = string
-    target_revision     = string
-    destination_server  = string
-    subdomain           = string
-    values_file         = optional(string)
-    environment_label   = optional(string)
-    argocd_app_name     = optional(string)
-    helm_release_name   = optional(string)
-    seed_job_enabled    = optional(bool)
-    service_replicas    = optional(number)
-    ingress_services    = optional(map(object({
+    namespace          = string
+    target_revision    = string
+    destination_server = string
+    subdomain          = string
+    values_file        = optional(string)
+    environment_label  = optional(string)
+    argocd_app_name    = optional(string)
+    helm_release_name  = optional(string)
+    seed_job_enabled   = optional(bool)
+    service_replicas   = optional(number)
+    ingress_services = optional(map(object({
       enabled          = optional(bool, true)
       host             = optional(string)
       host_prefix      = optional(string)
@@ -77,7 +74,7 @@ variable "environments" {
       namespace          = "ecommerce"
       target_revision    = "argo-dev"
       destination_server = "https://kubernetes.default.svc" # replace with dev cluster API or ArgoCD name (e.g. eks-dev)
-      subdomain          = "shop-dev"
+      subdomain          = "shop"
       values_file        = "../environments/dev/value.yaml"
       environment_label  = "development"
       seed_job_enabled   = true
@@ -136,9 +133,10 @@ variable "ingress_services" {
   description = <<-EOT
     Default per-service ingress map used for every environment unless overridden in environments.<env>.ingress_services.
     Keys become ingress resource names (<env>-<key>-ingress).
-    Each service gets its own subdomain on the shared ALB:
-    host = <host_prefix>.<app_subdomain>.<domain> (or explicit host override), path defaults to /.
-    Frontend host_prefix defaults to environments.<env>.subdomain when unset.
+    Each service gets its own host on this environment's ALB, covered by the env wildcard cert:
+    host = <host_prefix>.<env>.<app_subdomain>.<domain> (or explicit host override), path defaults to /.
+    Frontend host_prefix defaults to environments.<env>.subdomain (shop) when unset,
+    so the storefront is shop.dev.devopsdozo.livingdevops.org / shop.prod.devopsdozo.livingdevops.org.
   EOT
   type = map(object({
     enabled          = optional(bool, true)
@@ -216,11 +214,11 @@ variable "domain_name" {
 }
 
 variable "app_subdomain" {
-  description = "App DNS tier shared with ArgoCD/Vault/Grafana (e.g. devopsdozo → *.devopsdozo.livingdevops.org cert)"
+  description = "App DNS tier under the zone (devopsdozo → *.dev.devopsdozo.livingdevops.org and *.prod.devopsdozo.livingdevops.org)"
   default     = "devopsdozo"
 }
 variable "acm_cert_arn" {
-  description = "Optional ACM certificate ARN override; defaults to ISSUED wildcard *.app_subdomain.domain from k8s-services"
+  description = "Optional ACM certificate ARN override; defaults to the env wildcard created in acm.tf (*.<env>.<app_subdomain>.<domain>)"
   type        = string
   default     = null
 }

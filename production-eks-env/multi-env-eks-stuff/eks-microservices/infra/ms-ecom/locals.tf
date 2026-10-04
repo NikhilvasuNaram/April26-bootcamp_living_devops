@@ -6,18 +6,20 @@ locals {
   platform_env      = var.platform_env
   dev_env_prefix    = "${local.platform_env}-"
   cluster_env_cfg   = var.environments[var.env]
-  cluster_namespace = "${local.env_prefix}${local.cluster_env_cfg.namespace}"
+  cluster_namespace = "ecommerce"
   cluster_env_label = coalesce(try(local.cluster_env_cfg.environment_label, null), var.env)
-  cluster_name      = "${local.env_prefix}${var.cluster_name}"
-  alb_group_name    = "${local.env_prefix}${var.alb_group_name}"
+  cluster_name      = "${var.env}-sep26-cluster"
+  alb_group_name    = "sept-ms-shared"
+  # shop.dev.devopsdozo.livingdevops.org — covered by *.dev.devopsdozo.livingdevops.org
+  env_dns_suffix = "${var.env}.${var.app_subdomain}.${var.domain_name}"
 
   # ArgoCD runs on dev only — Application CRs live in dev-argocd even when managing prod.
-  deploy_argocd_app        = coalesce(var.enable_argocd_app, var.env == local.platform_env)
-  argocd_app_namespace     = "${local.dev_env_prefix}${var.argocd_namespace}"
+  deploy_argocd_app          = coalesce(var.enable_argocd_app, var.env == local.platform_env)
+  argocd_app_namespace       = "${local.dev_env_prefix}${var.argocd_namespace}"
   external_secrets_namespace = "${local.env_prefix}${var.external_secrets_namespace}"
-  vault_namespace          = "${local.dev_env_prefix}vault"
-  platform_vault_url       = "https://vault.${var.app_subdomain}.${var.domain_name}/"
-  platform_vault_addr      = local.platform_vault_url
+  vault_namespace            = "${local.dev_env_prefix}vault"
+  platform_vault_url         = "https://vault.${var.app_subdomain}.${var.domain_name}/"
+  platform_vault_addr        = local.platform_vault_url
 
   vault_addr_effective = coalesce(var.vault_addr, local.platform_vault_addr)
 

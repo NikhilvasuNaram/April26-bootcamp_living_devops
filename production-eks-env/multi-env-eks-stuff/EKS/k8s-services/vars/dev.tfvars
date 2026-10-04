@@ -11,3 +11,5 @@ eks_nodes = [
 ]
 
 eks_cluster_endpoint_public_access = true
+
+enable_argocd = true

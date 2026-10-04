@@ -7,7 +7,9 @@
 #   terraform apply -var-file=env/prod.tfvars
 
 locals {
-  # Wildcard cert is *.app_subdomain.domain (e.g. *.devopsdozo.livingdevops.org).
+  # Wildcard cert is *.<env>.<app_subdomain>.<domain>
+  # (*.dev.devopsdozo.livingdevops.org / *.prod.devopsdozo.livingdevops.org).
+  # Frontend: shop.<env>.devopsdozo.livingdevops.org
   ingress_services = var.enable_cluster_resources ? {
     for target in flatten([
       for env_key, env_cfg in { (var.env) = local.cluster_env_cfg } : [
@@ -19,7 +21,7 @@ locals {
           svc_key           = svc_key
           host = coalesce(
             try(svc_cfg.host, null),
-            "${coalesce(try(svc_cfg.host_prefix, null), svc_key == "frontend" ? env_cfg.subdomain : svc_key)}.${var.app_subdomain}.${var.domain_name}"
+            "${coalesce(try(svc_cfg.host_prefix, null), svc_key == "frontend" ? env_cfg.subdomain : svc_key)}.${env_key}.${var.app_subdomain}.${var.domain_name}"
           )
           path             = try(svc_cfg.path, "/")
           path_type        = try(svc_cfg.path_type, "Prefix")
@@ -51,7 +53,7 @@ resource "kubernetes_ingress_v1" "service" {
       "alb.ingress.kubernetes.io/load-balancer-attributes" = "idle_timeout.timeout_seconds=60"
       "alb.ingress.kubernetes.io/ssl-policy"               = "ELBSecurityPolicy-TLS-1-2-2017-01"
       "alb.ingress.kubernetes.io/tags"                     = "Environment=${each.value.environment_label},ManagedBy=Terraform,Name=${var.app_subdomain}-ingress"
-      "alb.ingress.kubernetes.io/group.name"                 = local.alb_group_name
+      "alb.ingress.kubernetes.io/group.name"               = local.alb_group_name
     }
   }
 
@@ -83,5 +85,8 @@ resource "kubernetes_ingress_v1" "service" {
     }
   }
 
-  depends_on = [kubernetes_namespace_v1.ecommerce]
+  depends_on = [
+    kubernetes_namespace_v1.ecommerce,
+    aws_acm_certificate_validation.env,
+  ]
 }

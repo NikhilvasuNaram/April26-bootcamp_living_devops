@@ -29,3 +29,22 @@ kubectl run postgres-test \
   --env="DATABASE_URL=postgresql://postgres:UiQ94pjLUO@devopsdozo.cvik8accw2tk.ap-south-1.rds.amazonaws.com:5432/devopsdozodb" \
   -- bash -c 'psql "$DATABASE_URL" -c "SELECT 1;"'
 ```
+
+
+```bash
+aws secretsmanager delete-secret \
+    --secret-id db/devopsdozo-db \
+    --force-delete-without-recovery
+
+```
+
+# argocd
+```bash
+helm repo add argo https://argoproj.github.io/argo-helm
+helm repo update
+helm install argocd argo/argo-cd -n argocd --create-namespace
+
+```
+
+
+kubectl set image deployment/frontend-deployment frontend=879381241087.dkr.ecr.ap-south-1.amazonaws.com/augk8s26-frontend:dafc1c583ef1f4fb2836569cc7f87ce1063b7cc4 -n devopsdozo

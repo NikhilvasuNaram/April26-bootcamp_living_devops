@@ -4,6 +4,12 @@ variable "environment" {
   default = "dev"
 }
 
+variable "aws_region" {
+  description = "The region of the application"
+  type = string
+  default = "ap-south-1"
+}
+
 variable "vpc_name" {
   description = "The name of the VPC"
   type = string
@@ -33,3 +39,11 @@ variable "domain_name" {
   type = string
   default = "mansipandey.in"
 }
+
+variable "alb_group_name" {
+  description = "The name of the ALB group"
+  type = string
+  default = "devopsdozo-alb-group"
+}
+
+
